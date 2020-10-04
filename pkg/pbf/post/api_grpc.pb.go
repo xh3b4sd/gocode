@@ -21,6 +21,7 @@ type APIClient interface {
 	Delete(ctx context.Context, in *DeleteI, opts ...grpc.CallOption) (*DeleteO, error)
 	Search(ctx context.Context, in *SearchI, opts ...grpc.CallOption) (*SearchO, error)
 	Update(ctx context.Context, in *UpdateI, opts ...grpc.CallOption) (*UpdateO, error)
+	Foo(ctx context.Context, in *UpdateI, opts ...grpc.CallOption) (*UpdateO, error)
 }
 
 type aPIClient struct {
@@ -67,6 +68,15 @@ func (c *aPIClient) Update(ctx context.Context, in *UpdateI, opts ...grpc.CallOp
 	return out, nil
 }
 
+func (c *aPIClient) Foo(ctx context.Context, in *UpdateI, opts ...grpc.CallOption) (*UpdateO, error) {
+	out := new(UpdateO)
+	err := c.cc.Invoke(ctx, "/post.API/Foo", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // APIServer is the server API for API service.
 // All implementations must embed UnimplementedAPIServer
 // for forward compatibility
@@ -75,6 +85,7 @@ type APIServer interface {
 	Delete(context.Context, *DeleteI) (*DeleteO, error)
 	Search(context.Context, *SearchI) (*SearchO, error)
 	Update(context.Context, *UpdateI) (*UpdateO, error)
+	Foo(context.Context, *UpdateI) (*UpdateO, error)
 	mustEmbedUnimplementedAPIServer()
 }
 
@@ -93,6 +104,9 @@ func (UnimplementedAPIServer) Search(context.Context, *SearchI) (*SearchO, error
 }
 func (UnimplementedAPIServer) Update(context.Context, *UpdateI) (*UpdateO, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Update not implemented")
+}
+func (UnimplementedAPIServer) Foo(context.Context, *UpdateI) (*UpdateO, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Foo not implemented")
 }
 func (UnimplementedAPIServer) mustEmbedUnimplementedAPIServer() {}
 
@@ -179,6 +193,24 @@ func _API_Update_Handler(srv interface{}, ctx context.Context, dec func(interfac
 	return interceptor(ctx, in, info, handler)
 }
 
+func _API_Foo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateI)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(APIServer).Foo(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/post.API/Foo",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(APIServer).Foo(ctx, req.(*UpdateI))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 var _API_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "post.API",
 	HandlerType: (*APIServer)(nil),
@@ -198,6 +230,10 @@ var _API_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Update",
 			Handler:    _API_Update_Handler,
+		},
+		{
+			MethodName: "Foo",
+			Handler:    _API_Foo_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
