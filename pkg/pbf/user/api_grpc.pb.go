@@ -103,7 +103,7 @@ type UnsafeAPIServer interface {
 	mustEmbedUnimplementedAPIServer()
 }
 
-func RegisterAPIServer(s *grpc.Server, srv APIServer) {
+func RegisterAPIServer(s grpc.ServiceRegistrar, srv APIServer) {
 	s.RegisterService(&_API_serviceDesc, srv)
 }
 
